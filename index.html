@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retro Board</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    min-height: 100vh;
+  }
+
+  header {
+    text-align: center;
+    padding: 24px 16px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2d3748;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #4a5568;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background .15s;
+  }
+  .back-btn:hover { background: #e2e8f0; }
+
+  /* --- Boards List View --- */
+  .boards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .board-tile {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    padding: 20px;
+    cursor: pointer;
+    transition: box-shadow .15s, transform .15s;
+    position: relative;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #2d3748;
+  }
+  .board-tile:hover { box-shadow: 0 4px 12px rgba(0,0,0,.12); transform: translateY(-2px); }
+
+  .board-tile .delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #a0aec0;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color .15s, background .15s;
+    display: flex;
+    align-items: center;
+  }
+  .board-tile .delete-btn:hover { color: #e53e3e; background: #fee; }
+
+  .create-board-btn {
+    background: #fff;
+    border: 2px dashed #cbd5e0;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #718096;
+    transition: border-color .15s, color .15s;
+  }
+  .create-board-btn:hover { border-color: #667eea; color: #667eea; }
+
+  /* --- Board Detail View --- */
+  .board {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: flex-start;
+  }
+
+  .column {
+    flex: 1;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+    transition: box-shadow .2s;
+  }
+
+  .column.drag-over {
+    box-shadow: 0 0 0 2px #667eea, 0 4px 12px rgba(102,126,234,.25);
+  }
+
+  .column-header {
+    padding: 14px 16px;
+    font-weight: 600;
+    font-size: .95rem;
+    border-radius: 12px 12px 0 0;
+    color: #fff;
+  }
+
+  .column[data-col="went-well"] .column-header  { background: #38a169; }
+  .column[data-col="to-improve"] .column-header  { background: #d69e2e; }
+  .column[data-col="action-items"] .column-header { background: #3182ce; }
+
+  .cards {
+    padding: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card {
+    position: relative;
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 32px 10px 12px;
+    min-height: 42px;
+    font-size: .9rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    cursor: grab;
+    transition: box-shadow .15s, opacity .15s;
+  }
+
+  .card:hover { box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+  .card.dragging { opacity: .4; }
+
+  .card.placeholder {
+    border-style: dashed;
+    cursor: text;
+    background: #fff;
+  }
+
+  .card.placeholder textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    font: inherit;
+    line-height: inherit;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+
+  .card .delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #a0aec0;
+    transition: color .15s;
+    line-height: 1;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+  }
+  .card .delete-btn:hover { color: #e53e3e; }
+
+  .hidden { display: none !important; }
+
+  /* --- Auth Views --- */
+  .auth-container {
+    max-width: 380px;
+    margin: 80px auto 0;
+    padding: 0 20px;
+  }
+
+  .auth-container h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2d3748;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .auth-form {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .auth-form input {
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: .95rem;
+    outline: none;
+    transition: border-color .15s;
+  }
+
+  .auth-form input:focus { border-color: #667eea; }
+
+  .auth-form button {
+    padding: 10px;
+    background: #667eea;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: .95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  .auth-form button:hover { background: #5a67d8; }
+
+  .auth-error {
+    color: #e53e3e;
+    font-size: .85rem;
+    display: none;
+  }
+
+  .auth-error.visible { display: block; }
+
+  .auth-switch {
+    text-align: center;
+    margin-top: 14px;
+    font-size: .88rem;
+    color: #718096;
+  }
+
+  .auth-switch a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .auth-switch a:hover { text-decoration: underline; }
+
+  /* --- Boards Header --- */
+  .boards-header {
+    text-align: center;
+    padding: 24px 16px 0;
+  }
+
+  .boards-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .boards-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2d3748;
+  }
+
+  .welcome-text {
+    font-size: .95rem;
+    color: #718096;
+    margin-top: 6px;
+  }
+
+  .sign-out-btn {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: .85rem;
+    color: #718096;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+
+  .sign-out-btn:hover { background: #edf2f7; color: #4a5568; }
+
+  /* --- Card Author --- */
+  .card-author {
+    font-size: .75rem;
+    color: #a0aec0;
+    margin-top: 4px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px 32px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,.18);
+  }
+
+  .modal h2 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+  }
+
+  .modal p {
+    font-size: .9rem;
+    color: #718096;
+    margin-bottom: 20px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .modal-actions button {
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: none;
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  .btn-cancel {
+    background: #edf2f7;
+    color: #4a5568;
+  }
+  .btn-cancel:hover { background: #e2e8f0; }
+
+  .btn-proceed {
+    background: #e53e3e;
+    color: #fff;
+  }
+  .btn-proceed:hover { background: #c53030; }
+</style>
+</head>
+<body>
+
+<!-- ======== Sign In View ======== -->
+<div id="view-signin" class="hidden">
+  <div class="auth-container">
+    <h1>Retro Boards</h1>
+    <div class="auth-form" id="signin-form">
+      <input type="email" id="signin-email" placeholder="Email address" autocomplete="email">
+      <div class="auth-error" id="signin-error"></div>
+      <button id="signin-btn">Sign In</button>
+    </div>
+    <div class="auth-switch">Don't have an account? <a id="goto-signup">Sign Up</a></div>
+  </div>
+</div>
+
+<!-- ======== Sign Up View ======== -->
+<div id="view-signup" class="hidden">
+  <div class="auth-container">
+    <h1>Retro Boards</h1>
+    <div class="auth-form" id="signup-form">
+      <input type="email" id="signup-email" placeholder="Email address" autocomplete="email">
+      <input type="text" id="signup-name" placeholder="Name / Nickname">
+      <div class="auth-error" id="signup-error"></div>
+      <button id="signup-btn">Sign Up</button>
+    </div>
+    <div class="auth-switch">Already have an account? <a id="goto-signin">Sign In</a></div>
+  </div>
+</div>
+
+<!-- ======== Boards List View ======== -->
+<div id="view-boards" class="hidden">
+  <div class="boards-header">
+    <div class="boards-header-top">
+      <h1>Retro Boards</h1>
+      <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
+    </div>
+    <div class="welcome-text" id="welcome-text"></div>
+  </div>
+  <div class="boards-grid" id="boards-grid"></div>
+</div>
+
+<!-- ======== Board Detail View ======== -->
+<div id="view-board" class="hidden">
+  <header>
+    <button class="back-btn" id="back-btn" title="Back to boards">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </button>
+    <h1 id="board-title"></h1>
+  </header>
+  <div class="board" id="board-columns">
+    <div class="column" data-col="went-well">
+      <div class="column-header">Went Well</div>
+      <div class="cards"></div>
+    </div>
+    <div class="column" data-col="to-improve">
+      <div class="column-header">To Improve</div>
+      <div class="cards"></div>
+    </div>
+    <div class="column" data-col="action-items">
+      <div class="column-header">Action Items</div>
+      <div class="cards"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== Delete Confirmation Modal ======== -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Delete Card</h2>
+    <p id="modal-message">Are you sure you want to delete this card?</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modal-cancel">Cancel</button>
+      <button class="btn-proceed" id="modal-proceed">Proceed</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TRASH_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+
+  // --- API Helpers ---
+  async function apiGet(url) {
+    const res = await fetch(url);
+    return res.json();
+  }
+  async function apiPost(url, body) {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    return res.json();
+  }
+  async function apiPut(url, body) {
+    const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    return res.json();
+  }
+  async function apiDelete(url) {
+    const res = await fetch(url, { method: 'DELETE' });
+    return res.json();
+  }
+
+  // --- Author Cache ---
+  let authorCache = {};
+
+  // --- Cookie Helpers ---
+  function setCookie(name, value, days) {
+    const d = new Date();
+    d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+  }
+
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+
+  function deleteCookie(name) {
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax';
+  }
+
+  // --- Current User ---
+  async function getCurrentUser() {
+    const res = await fetch('/api/me');
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.user || null;
+  }
+
+  // --- Data ---
+  let boards = [];
+  let currentBoardId = null;
+
+  function getBoard(id) {
+    return boards.find(b => b.id === id);
+  }
+
+  // --- Modal ---
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalMessage = document.getElementById('modal-message');
+  const btnCancel = document.getElementById('modal-cancel');
+  const btnProceed = document.getElementById('modal-proceed');
+  let pendingDeleteAction = null;
+
+  function showModal(title, message, onConfirm) {
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    pendingDeleteAction = onConfirm;
+    modal.classList.add('active');
+  }
+
+  function hideModal() {
+    modal.classList.remove('active');
+    pendingDeleteAction = null;
+  }
+
+  btnCancel.addEventListener('click', hideModal);
+  btnProceed.addEventListener('click', () => {
+    if (pendingDeleteAction) pendingDeleteAction();
+    hideModal();
+  });
+  modal.addEventListener('click', e => { if (e.target === modal) hideModal(); });
+
+  // --- Auth UI ---
+  const viewSignin = document.getElementById('view-signin');
+  const viewSignup = document.getElementById('view-signup');
+
+  document.getElementById('goto-signup').addEventListener('click', () => {
+    hideAllViews();
+    viewSignup.classList.remove('hidden');
+    document.getElementById('signup-error').classList.remove('visible');
+  });
+
+  document.getElementById('goto-signin').addEventListener('click', () => {
+    hideAllViews();
+    viewSignin.classList.remove('hidden');
+    document.getElementById('signin-error').classList.remove('visible');
+  });
+
+  document.getElementById('signin-btn').addEventListener('click', async () => {
+    const email = document.getElementById('signin-email').value.trim().toLowerCase();
+    const errEl = document.getElementById('signin-error');
+    if (!email) { errEl.textContent = 'Please enter an email address.'; errEl.classList.add('visible'); return; }
+    const result = await apiPost('/api/signin', { email });
+    if (!result.ok) { errEl.textContent = result.error; errEl.classList.add('visible'); return; }
+    setCookie('retroUser', email, 365);
+    await showBoardsList();
+  });
+
+  document.getElementById('signin-email').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('signin-btn').click();
+  });
+
+  document.getElementById('signup-btn').addEventListener('click', async () => {
+    const email = document.getElementById('signup-email').value.trim().toLowerCase();
+    const name = document.getElementById('signup-name').value.trim();
+    const errEl = document.getElementById('signup-error');
+    if (!email) { errEl.textContent = 'Please enter an email address.'; errEl.classList.add('visible'); return; }
+    if (!name) { errEl.textContent = 'Please enter a name or nickname.'; errEl.classList.add('visible'); return; }
+    const result = await apiPost('/api/signup', { email, name });
+    if (!result.ok) { errEl.textContent = result.error; errEl.classList.add('visible'); return; }
+    setCookie('retroUser', email, 365);
+    await showBoardsList();
+  });
+
+  document.getElementById('signup-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('signup-btn').click();
+  });
+
+  document.getElementById('sign-out-btn').addEventListener('click', () => {
+    deleteCookie('retroUser');
+    showSignIn();
+  });
+
+  // --- Navigation ---
+  const viewBoards = document.getElementById('view-boards');
+  const viewBoard = document.getElementById('view-board');
+
+  function hideAllViews() {
+    viewSignin.classList.add('hidden');
+    viewSignup.classList.add('hidden');
+    viewBoards.classList.add('hidden');
+    viewBoard.classList.add('hidden');
+  }
+
+  function showSignIn() {
+    currentBoardId = null;
+    location.hash = '';
+    hideAllViews();
+    viewSignin.classList.remove('hidden');
+    document.getElementById('signin-error').classList.remove('visible');
+    document.getElementById('signin-email').value = '';
+  }
+
+  async function showBoardsList() {
+    const user = await getCurrentUser();
+    if (!user) { showSignIn(); return; }
+    currentBoardId = null;
+    location.hash = '';
+    hideAllViews();
+    viewBoards.classList.remove('hidden');
+    document.getElementById('welcome-text').textContent = 'Welcome, ' + user.name + '!';
+    const data = await apiGet('/api/boards');
+    boards = data.boards;
+    renderBoardsList();
+  }
+
+  async function showBoard(id) {
+    const user = await getCurrentUser();
+    if (!user) { showSignIn(); return; }
+    const data = await apiGet('/api/boards/' + id);
+    if (data.error) { await showBoardsList(); return; }
+    // Update local boards array with fresh data
+    const idx = boards.findIndex(b => b.id === id);
+    if (idx !== -1) boards[idx] = data.board; else boards.push(data.board);
+    // Merge authors into cache
+    Object.assign(authorCache, data.authors);
+    currentBoardId = id;
+    location.hash = 'board-' + id;
+    hideAllViews();
+    viewBoard.classList.remove('hidden');
+    document.getElementById('board-title').textContent = data.board.name;
+    renderBoardCards(data.board);
+  }
+
+  document.getElementById('back-btn').addEventListener('click', () => showBoardsList());
+
+  window.addEventListener('hashchange', async () => {
+    const hash = location.hash.slice(1);
+    if (hash.startsWith('board-')) {
+      await showBoard(hash.slice(6));
+    } else {
+      const user = await getCurrentUser();
+      if (user) { await showBoardsList(); } else { showSignIn(); }
+    }
+  });
+
+  // --- Boards List Rendering ---
+  function renderBoardsList() {
+    const grid = document.getElementById('boards-grid');
+    grid.innerHTML = '';
+
+    boards.forEach(board => {
+      const tile = document.createElement('div');
+      tile.className = 'board-tile';
+      tile.textContent = board.name;
+      tile.addEventListener('click', () => showBoard(board.id));
+
+      const del = document.createElement('button');
+      del.className = 'delete-btn';
+      del.innerHTML = TRASH_SVG;
+      del.title = 'Delete board';
+      del.addEventListener('click', e => {
+        e.stopPropagation();
+        showModal('Delete Board', `Are you sure you want to delete "${board.name}"?`, async () => {
+          await apiDelete('/api/boards/' + board.id);
+          boards = boards.filter(b => b.id !== board.id);
+          renderBoardsList();
+        });
+      });
+      tile.appendChild(del);
+      grid.appendChild(tile);
+    });
+
+    const createBtn = document.createElement('button');
+    createBtn.className = 'create-board-btn';
+    createBtn.textContent = '+ Create New Board';
+    createBtn.addEventListener('click', async () => {
+      const name = prompt('Board name:');
+      if (!name || !name.trim()) return;
+      const result = await apiPost('/api/boards', { name: name.trim() });
+      boards.push(result.board);
+      await showBoard(result.board.id);
+    });
+    grid.appendChild(createBtn);
+  }
+
+  // --- Board Detail Rendering ---
+  function getAuthorName(email) {
+    if (!email || email === 'unknown') return 'Unknown';
+    return authorCache[email] || email;
+  }
+
+  function renderBoardCards(board) {
+    document.querySelectorAll('#board-columns .column').forEach(col => {
+      const colId = col.dataset.col;
+      const cardsContainer = col.querySelector('.cards');
+      cardsContainer.innerHTML = '';
+
+      // Add placeholder at top
+      cardsContainer.appendChild(createPlaceholder());
+
+      // Add saved cards
+      (board.columns[colId] || []).forEach(item => {
+        cardsContainer.appendChild(createFilledCard(item));
+      });
+    });
+    setupDragDrop();
+  }
+
+  async function saveBoardState() {
+    if (!currentBoardId) return;
+    const columns = {};
+    document.querySelectorAll('#board-columns .column').forEach(col => {
+      const colId = col.dataset.col;
+      const cards = [];
+      col.querySelectorAll('.cards .card:not(.placeholder)').forEach(card => {
+        const text = card.querySelector('span').textContent;
+        const author = card.dataset.author || 'unknown';
+        cards.push({ text, author });
+      });
+      columns[colId] = cards;
+    });
+    await apiPut('/api/boards/' + currentBoardId, { columns });
+  }
+
+  // --- Card Creation ---
+  function createPlaceholder() {
+    const card = document.createElement('div');
+    card.className = 'card placeholder';
+    const ta = document.createElement('textarea');
+    ta.rows = 1;
+    ta.placeholder = 'Add a note\u2026';
+    ta.addEventListener('input', autoResize);
+    ta.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        commitPlaceholder(card, true);
+      }
+    });
+    ta.addEventListener('blur', () => commitPlaceholder(card, false));
+    card.appendChild(ta);
+    return card;
+  }
+
+  function autoResize(e) {
+    const ta = e.target;
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+  }
+
+  function createFilledCard(item) {
+    const text = typeof item === 'string' ? item : item.text;
+    const author = typeof item === 'string' ? 'unknown' : (item.author || 'unknown');
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.draggable = true;
+    card.dataset.author = author;
+
+    const span = document.createElement('span');
+    span.textContent = text;
+    card.appendChild(span);
+
+    const authorDiv = document.createElement('div');
+    authorDiv.className = 'card-author';
+    authorDiv.textContent = getAuthorName(author);
+    card.appendChild(authorDiv);
+
+    const btn = document.createElement('button');
+    btn.className = 'delete-btn';
+    btn.innerHTML = TRASH_SVG;
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      showModal('Delete Card', 'Are you sure you want to delete this card?', () => {
+        card.remove();
+        saveBoardState();
+      });
+    });
+    card.appendChild(btn);
+
+    card.addEventListener('dragstart', onDragStart);
+    card.addEventListener('dragend', onDragEnd);
+    return card;
+  }
+
+  function commitPlaceholder(card, focusNew) {
+    if (card._committed) return;
+    const ta = card.querySelector('textarea');
+    const text = ta.value.trim();
+    if (!text) return;
+    card._committed = true;
+
+    const authorEmail = getCookie('retroUser') || 'unknown';
+
+    // Convert to filled card
+    card.classList.remove('placeholder');
+    card.innerHTML = '';
+    card.draggable = true;
+    card.dataset.author = authorEmail;
+
+    const span = document.createElement('span');
+    span.textContent = text;
+    card.appendChild(span);
+
+    const authorDiv = document.createElement('div');
+    authorDiv.className = 'card-author';
+    authorDiv.textContent = getAuthorName(authorEmail);
+    card.appendChild(authorDiv);
+
+    const btn = document.createElement('button');
+    btn.className = 'delete-btn';
+    btn.innerHTML = TRASH_SVG;
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      showModal('Delete Card', 'Are you sure you want to delete this card?', () => {
+        card.remove();
+        saveBoardState();
+      });
+    });
+    card.appendChild(btn);
+
+    card.addEventListener('dragstart', onDragStart);
+    card.addEventListener('dragend', onDragEnd);
+
+    // Insert new placeholder at top
+    const container = card.parentElement;
+    const newPlaceholder = createPlaceholder();
+    container.insertBefore(newPlaceholder, container.firstChild);
+    if (focusNew) newPlaceholder.querySelector('textarea').focus();
+
+    saveBoardState();
+  }
+
+  // --- Drag and Drop ---
+  let draggedCard = null;
+
+  function onDragStart(e) {
+    draggedCard = e.target;
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function onDragEnd(e) {
+    e.target.classList.remove('dragging');
+    draggedCard = null;
+    document.querySelectorAll('.column.drag-over').forEach(c => c.classList.remove('drag-over'));
+  }
+
+  function setupDragDrop() {
+    document.querySelectorAll('#board-columns .column').forEach(col => {
+      col.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        col.classList.add('drag-over');
+      });
+
+      col.addEventListener('dragleave', e => {
+        if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+      });
+
+      col.addEventListener('drop', e => {
+        e.preventDefault();
+        col.classList.remove('drag-over');
+        if (!draggedCard) return;
+        const cards = col.querySelector('.cards');
+        const placeholder = cards.querySelector('.placeholder');
+        cards.insertBefore(draggedCard, placeholder ? placeholder.nextSibling : cards.firstChild);
+        saveBoardState();
+      });
+    });
+  }
+
+  // --- Init ---
+  (async () => {
+    const user = await getCurrentUser();
+    if (!user) {
+      showSignIn();
+    } else {
+      const hash = location.hash.slice(1);
+      if (hash.startsWith('board-')) {
+        await showBoard(hash.slice(6));
+      } else {
+        await showBoardsList();
+      }
+    }
+  })();
+</script>
+</body>
+</html>
