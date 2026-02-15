@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const DATA_FILE = path.join(__dirname, 'data.json');
+const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data.json');
 
 // --- Data helpers ---
 function loadData() {
@@ -228,7 +228,7 @@ app.put('/api/boards/:id', (req, res) => {
 });
 
 // --- Start ---
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Retro server running at http://localhost:${PORT}`);
+  console.log(`Retro server running on port ${PORT}`);
 });

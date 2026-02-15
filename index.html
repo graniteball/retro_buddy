@@ -455,6 +455,49 @@
     text-align: center;
   }
 
+  /* --- Help Page --- */
+  .help-content {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+    line-height: 1.6;
+    color: #1a1a2e;
+  }
+
+  .help-content h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 12px;
+  }
+
+  .help-content h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-top: 28px;
+    margin-bottom: 12px;
+  }
+
+  .help-content p {
+    font-size: .95rem;
+    margin-bottom: 14px;
+  }
+
+  .help-btn {
+    background: #667eea;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: .85rem;
+    color: #fff;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  .help-btn:hover { background: #5a67d8; }
+
   /* --- Toast --- */
   .toast {
     position: fixed;
@@ -573,6 +616,7 @@
     <div class="boards-header-top">
       <img src="retro-buddy-logo-transparant.png" alt="Retro Buddy" class="top-bar-logo">
       <div class="welcome-text" id="welcome-text"></div>
+      <button class="help-btn" id="help-btn">Help</button>
       <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
     </div>
   </div>
@@ -587,6 +631,7 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
     </button>
     <h1 id="board-title"></h1>
+    <button class="help-btn" id="board-help-btn">Help</button>
     <button class="sign-out-btn" id="board-sign-out-btn">Sign Out</button>
   </header>
   <div class="board" id="board-columns">
@@ -602,6 +647,38 @@
       <div class="column-header">Action Items</div>
       <div class="cards"></div>
     </div>
+  </div>
+</div>
+
+<!-- ======== Help View ======== -->
+<div id="view-help" class="hidden">
+  <header>
+    <img src="retro-buddy-logo-transparant.png" alt="Retro Buddy" class="top-bar-logo">
+    <button class="back-btn" id="help-back-btn" title="Back">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </button>
+    <h1></h1>
+    <button class="sign-out-btn" id="help-sign-out-btn">Sign Out</button>
+  </header>
+  <div class="help-content">
+    <h1>Retro Buddy: Team Retrospective Instructions</h1>
+    <p>Retro Buddy is an opinionated tool for running team retrospectives. It supports one workflow. If you need flexibility, use a tool like Reetro instead.</p>
+
+    <h2>Before the Meeting</h2>
+    <p><strong>Create the board.</strong> Set up a new board in preparation for your retrospective meeting.</p>
+    <p><strong>Add cards.</strong> Team members create cards in the first two columns: things that went well and things that could be improved.</p>
+    <p><strong>Check for duplicates.</strong> Before creating a new card, scan existing cards. If you find a similar one, edit it to add your thoughts instead of creating a duplicate.</p>
+    <p><strong>Merge duplicates.</strong> The meeting leader reviews all cards and manually merges any that are duplicates or closely related. (Automatic merging is not available.)</p>
+
+    <h2>During the Meeting</h2>
+    <p><strong>Vote on priorities.</strong> Each team member votes on the cards they want to discuss by clicking the thumbs-up icon. Everyone gets five votes maximum, one per card. To remove a vote, click the thumbs-up again.</p>
+    <p><strong>Sort by votes.</strong> Once voting is completed, click the up-arrow icon to sort cards in descending order by votes.</p>
+    <p><strong>Discuss top items.</strong> The meeting leader facilitates discussion of the highest-voted cards, working within your time limit (typically 30-45 minutes). Ask the card creator to provide background on each item.</p>
+    <p><strong>Celebrate wins.</strong> For things that went well, celebrate the success and create action items, if appropriate, to sustain or amplify the positive outcome.</p>
+    <p><strong>Take action to make improvements.</strong> For things needing improvement, generate action items with clear owners and due dates for the next sprint.</p>
+
+    <h2>After the Meeting</h2>
+    <p><strong>Delete old boards.</strong> Meeting leader periodically removes outdated boards to reduce clutter.</p>
   </div>
 </div>
 
@@ -783,15 +860,46 @@
     showSignIn();
   });
 
+  document.getElementById('help-sign-out-btn').addEventListener('click', () => {
+    deleteCookie('retroUser');
+    showSignIn();
+  });
+
+  document.getElementById('help-btn').addEventListener('click', showHelp);
+  document.getElementById('board-help-btn').addEventListener('click', showHelp);
+  document.getElementById('help-back-btn').addEventListener('click', returnFromHelp);
+
   // --- Navigation ---
   const viewBoards = document.getElementById('view-boards');
   const viewBoard = document.getElementById('view-board');
+  const viewHelp = document.getElementById('view-help');
+  let helpReturnView = null;
 
   function hideAllViews() {
     viewSignin.classList.add('hidden');
     viewSignup.classList.add('hidden');
     viewBoards.classList.add('hidden');
     viewBoard.classList.add('hidden');
+    viewHelp.classList.add('hidden');
+  }
+
+  function showHelp() {
+    // Remember which view to return to
+    if (!viewBoards.classList.contains('hidden')) helpReturnView = 'boards';
+    else if (!viewBoard.classList.contains('hidden')) helpReturnView = 'board';
+    else helpReturnView = 'boards';
+    stopPolling();
+    hideAllViews();
+    viewHelp.classList.remove('hidden');
+  }
+
+  function returnFromHelp() {
+    hideAllViews();
+    if (helpReturnView === 'board' && currentBoardId) {
+      showBoard(currentBoardId);
+    } else {
+      showBoardsList();
+    }
   }
 
   function showSignIn() {
