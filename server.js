@@ -61,7 +61,7 @@ function generateId() {
 
 // --- Middleware ---
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static(__dirname));
 
 // --- API Routes ---
 
