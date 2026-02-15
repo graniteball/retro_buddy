@@ -14,19 +14,11 @@
     min-height: 100vh;
   }
 
-  header {
-    text-align: center;
-    padding: 24px 16px 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-  }
-
   header h1 {
     font-size: 1.6rem;
     font-weight: 700;
     color: #2d3748;
+    flex: 1;
   }
 
   .back-btn {
@@ -134,7 +126,24 @@
     font-size: .95rem;
     border-radius: 12px 12px 0 0;
     color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
+
+  .sort-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255,255,255,.7);
+    padding: 2px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    transition: color .15s, background .15s;
+  }
+
+  .sort-btn:hover { color: #fff; background: rgba(255,255,255,.15); }
 
   .column[data-col="went-well"] .column-header  { background: #38a169; }
   .column[data-col="to-improve"] .column-header  { background: #d69e2e; }
@@ -203,9 +212,21 @@
   .hidden { display: none !important; }
 
   /* --- Auth Views --- */
+  .auth-logo {
+    display: flex;
+    justify-content: center;
+    height: 120px;
+    padding-top: 16px;
+  }
+
+  .auth-logo .top-bar-logo {
+    position: static;
+    transform: none;
+  }
+
   .auth-container {
     max-width: 380px;
-    margin: 80px auto 0;
+    margin: 24px auto 0;
     padding: 0 20px;
   }
 
@@ -278,15 +299,9 @@
 
   /* --- Boards Header --- */
   .boards-header {
-    text-align: center;
-    padding: 24px 16px 0;
-  }
-
-  .boards-header-top {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
+    padding: 16px 20px 0;
+    max-width: 900px;
+    margin: 0 auto;
   }
 
   .boards-header h1 {
@@ -298,21 +313,102 @@
   .welcome-text {
     font-size: .95rem;
     color: #718096;
-    margin-top: 6px;
+    font-weight: 600;
+    flex: 1;
   }
 
   .sign-out-btn {
-    background: none;
-    border: 1px solid #e2e8f0;
+    background: #667eea;
+    border: none;
     border-radius: 6px;
-    padding: 6px 12px;
+    padding: 6px 14px;
     font-size: .85rem;
-    color: #718096;
+    color: #fff;
+    font-weight: 500;
     cursor: pointer;
-    transition: background .15s, color .15s;
+    transition: background .15s;
   }
 
-  .sign-out-btn:hover { background: #edf2f7; color: #4a5568; }
+  .sign-out-btn:hover { background: #5a67d8; }
+
+  /* --- Brand Logo --- */
+  .top-bar-logo {
+    height: 120px;
+    width: auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0;
+  }
+
+  /* --- Header wrappers --- */
+  .boards-header-top {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 100px;
+  }
+
+  header {
+    position: relative;
+    padding: 100px 20px 8px;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  header .sign-out-btn {
+    margin-left: auto;
+  }
+
+  /* --- Action Item Extra Fields --- */
+  .action-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .action-fields input {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: .82rem;
+    outline: none;
+  }
+
+  .action-fields input:focus { border-color: #667eea; }
+
+  .card-meta {
+    font-size: .78rem;
+    color: #718096;
+    margin-top: 4px;
+  }
+
+  .card-meta span { margin-right: 10px; }
+
+  /* --- Editable Card --- */
+  .card.editing {
+    cursor: default;
+    padding-right: 12px;
+  }
+
+  .card.editing textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    font: inherit;
+    line-height: inherit;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
 
   /* --- Card Author --- */
   .card-author {
@@ -320,6 +416,64 @@
     color: #a0aec0;
     margin-top: 4px;
   }
+
+  /* --- Vote Bar --- */
+  .vote-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .vote-btn {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 3px 5px;
+    line-height: 1;
+    color: #4a5568;
+    transition: background .15s, color .15s;
+    display: flex;
+    align-items: center;
+  }
+
+  .vote-btn:hover:not(.disabled) { background: #edf2f7; }
+
+  .vote-btn.voted { color: #38a169; }
+
+  .vote-btn.disabled {
+    opacity: .35;
+    pointer-events: none;
+  }
+
+  .vote-count {
+    font-size: .8rem;
+    font-weight: 600;
+    color: #4a5568;
+    min-width: 16px;
+    text-align: center;
+  }
+
+  /* --- Toast --- */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e53e3e;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: .9rem;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    z-index: 200;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+
+  .toast.visible { opacity: 1; }
 
   /* Modal */
   .modal-overlay {
@@ -388,8 +542,8 @@
 
 <!-- ======== Sign In View ======== -->
 <div id="view-signin" class="hidden">
+  <div class="auth-logo"><img src="retro-buddy-logo-transparant.png" alt="Retro Buddy" class="top-bar-logo"></div>
   <div class="auth-container">
-    <h1>Retro Boards</h1>
     <div class="auth-form" id="signin-form">
       <input type="email" id="signin-email" placeholder="Email address" autocomplete="email">
       <div class="auth-error" id="signin-error"></div>
@@ -401,8 +555,8 @@
 
 <!-- ======== Sign Up View ======== -->
 <div id="view-signup" class="hidden">
+  <div class="auth-logo"><img src="retro-buddy-logo-transparant.png" alt="Retro Buddy" class="top-bar-logo"></div>
   <div class="auth-container">
-    <h1>Retro Boards</h1>
     <div class="auth-form" id="signup-form">
       <input type="email" id="signup-email" placeholder="Email address" autocomplete="email">
       <input type="text" id="signup-name" placeholder="Name / Nickname">
@@ -417,10 +571,10 @@
 <div id="view-boards" class="hidden">
   <div class="boards-header">
     <div class="boards-header-top">
-      <h1>Retro Boards</h1>
+      <img src="retro-buddy-logo-transparant.png" alt="Retro Buddy" class="top-bar-logo">
+      <div class="welcome-text" id="welcome-text"></div>
       <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
     </div>
-    <div class="welcome-text" id="welcome-text"></div>
   </div>
   <div class="boards-grid" id="boards-grid"></div>
 </div>
@@ -428,10 +582,12 @@
 <!-- ======== Board Detail View ======== -->
 <div id="view-board" class="hidden">
   <header>
+    <img src="retro-buddy-logo-transparant.png" alt="Retro Buddy" class="top-bar-logo">
     <button class="back-btn" id="back-btn" title="Back to boards">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
     </button>
     <h1 id="board-title"></h1>
+    <button class="sign-out-btn" id="board-sign-out-btn">Sign Out</button>
   </header>
   <div class="board" id="board-columns">
     <div class="column" data-col="went-well">
@@ -461,8 +617,30 @@
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('visible');
+    setTimeout(() => toast.classList.remove('visible'), 2500);
+  }
+
+  function isDateValid(dateStr) {
+    if (!dateStr) return true; // empty is OK
+    const today = new Date().toISOString().split('T')[0];
+    return dateStr >= today;
+  }
+
+  function generateClientId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
   const TRASH_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+  const THUMBS_UP_OUTLINE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg>';
+  const THUMBS_UP_SOLID_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg>';
+  const SORT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5l0 14"/><path d="M18 11l-6-6-6 6"/></svg>';
 
   // --- API Helpers ---
   async function apiGet(url) {
@@ -506,12 +684,15 @@
     const res = await fetch('/api/me');
     if (!res.ok) return null;
     const data = await res.json();
+    if (data.user) authorCache[data.user.email] = data.user.name;
     return data.user || null;
   }
 
   // --- Data ---
   let boards = [];
   let currentBoardId = null;
+  let myTotalVotes = 0;
+  let cardVotesMap = {};
 
   function getBoard(id) {
     return boards.find(b => b.id === id);
@@ -566,6 +747,7 @@
     if (!email) { errEl.textContent = 'Please enter an email address.'; errEl.classList.add('visible'); return; }
     const result = await apiPost('/api/signin', { email });
     if (!result.ok) { errEl.textContent = result.error; errEl.classList.add('visible'); return; }
+    authorCache[email] = result.user.name;
     setCookie('retroUser', email, 365);
     await showBoardsList();
   });
@@ -582,6 +764,7 @@
     if (!name) { errEl.textContent = 'Please enter a name or nickname.'; errEl.classList.add('visible'); return; }
     const result = await apiPost('/api/signup', { email, name });
     if (!result.ok) { errEl.textContent = result.error; errEl.classList.add('visible'); return; }
+    authorCache[email] = name;
     setCookie('retroUser', email, 365);
     await showBoardsList();
   });
@@ -591,6 +774,11 @@
   });
 
   document.getElementById('sign-out-btn').addEventListener('click', () => {
+    deleteCookie('retroUser');
+    showSignIn();
+  });
+
+  document.getElementById('board-sign-out-btn').addEventListener('click', () => {
     deleteCookie('retroUser');
     showSignIn();
   });
@@ -607,6 +795,7 @@
   }
 
   function showSignIn() {
+    stopPolling();
     currentBoardId = null;
     location.hash = '';
     hideAllViews();
@@ -625,7 +814,9 @@
     document.getElementById('welcome-text').textContent = 'Welcome, ' + user.name + '!';
     const data = await apiGet('/api/boards');
     boards = data.boards;
+    lastBoardsListJSON = JSON.stringify(boards.map(b => ({ id: b.id, name: b.name })));
     renderBoardsList();
+    startBoardsListPolling();
   }
 
   async function showBoard(id) {
@@ -638,12 +829,22 @@
     if (idx !== -1) boards[idx] = data.board; else boards.push(data.board);
     // Merge authors into cache
     Object.assign(authorCache, data.authors);
+    myTotalVotes = data.myTotalVotes || 0;
+    // Build cardVotesMap from board data
+    cardVotesMap = {};
+    for (const colId of Object.keys(data.board.columns)) {
+      (data.board.columns[colId] || []).forEach(item => {
+        if (item.cardId) cardVotesMap[item.cardId] = item.votes || {};
+      });
+    }
     currentBoardId = id;
     location.hash = 'board-' + id;
     hideAllViews();
     viewBoard.classList.remove('hidden');
     document.getElementById('board-title').textContent = data.board.name;
+    lastBoardJSON = JSON.stringify(data.board.columns);
     renderBoardCards(data.board);
+    startBoardPolling(id);
   }
 
   document.getElementById('back-btn').addEventListener('click', () => showBoardsList());
@@ -704,18 +905,84 @@
     return authorCache[email] || email;
   }
 
+  function getVoteTotal(votes) {
+    return Object.values(votes || {}).reduce((s, v) => s + v, 0);
+  }
+
+  function getMyVotesOnCard(votes) {
+    const email = getCookie('retroUser') || '';
+    return (votes && votes[email]) || 0;
+  }
+
+  function refreshVoteStates() {
+    const email = getCookie('retroUser') || '';
+    document.querySelectorAll('.card[data-card-id]').forEach(card => {
+      const cardId = card.dataset.cardId;
+      const votes = cardVotesMap[cardId] || {};
+      const iVoted = !!votes[email];
+      const countEl = card.querySelector('.vote-count');
+      if (countEl) countEl.textContent = getVoteTotal(votes);
+      const upBtn = card.querySelector('.vote-up');
+      if (upBtn) {
+        upBtn.innerHTML = iVoted ? THUMBS_UP_SOLID_SVG : THUMBS_UP_OUTLINE_SVG;
+        if (iVoted) upBtn.classList.add('voted'); else upBtn.classList.remove('voted');
+        // Disable if at limit and haven't voted on this card (can always un-vote)
+        if (!iVoted && myTotalVotes >= 5) upBtn.classList.add('disabled');
+        else upBtn.classList.remove('disabled');
+      }
+    });
+  }
+
+  async function castVote(cardId) {
+    const result = await apiPost('/api/boards/' + currentBoardId + '/vote', { cardId });
+    if (!result.ok) return;
+    cardVotesMap[cardId] = result.votes;
+    myTotalVotes = result.myTotalVotes;
+    refreshVoteStates();
+    // Fetch fresh board to update snapshot so polling doesn't fight with us
+    try {
+      const fresh = await apiGet('/api/boards/' + currentBoardId);
+      if (fresh.board) lastBoardJSON = JSON.stringify(fresh.board.columns);
+    } catch (e) { /* ignore */ }
+  }
+
+  function sortColumnByVotes(col) {
+    const cardsContainer = col.querySelector('.cards');
+    const cards = [...cardsContainer.querySelectorAll('.card:not(.placeholder)')];
+    cards.sort((a, b) => {
+      const votesA = getVoteTotal(cardVotesMap[a.dataset.cardId] || {});
+      const votesB = getVoteTotal(cardVotesMap[b.dataset.cardId] || {});
+      return votesB - votesA;
+    });
+    cards.forEach(card => cardsContainer.appendChild(card));
+    saveBoardState();
+  }
+
   function renderBoardCards(board) {
     document.querySelectorAll('#board-columns .column').forEach(col => {
       const colId = col.dataset.col;
+      const header = col.querySelector('.column-header');
       const cardsContainer = col.querySelector('.cards');
       cardsContainer.innerHTML = '';
 
+      // Add sort button to went-well and to-improve headers
+      const existingSortBtn = header.querySelector('.sort-btn');
+      if (existingSortBtn) existingSortBtn.remove();
+      if (colId === 'went-well' || colId === 'to-improve') {
+        const sortBtn = document.createElement('button');
+        sortBtn.className = 'sort-btn';
+        sortBtn.innerHTML = SORT_SVG;
+        sortBtn.title = 'Sort by most votes';
+        sortBtn.addEventListener('click', () => sortColumnByVotes(col));
+        header.appendChild(sortBtn);
+      }
+
       // Add placeholder at top
-      cardsContainer.appendChild(createPlaceholder());
+      cardsContainer.appendChild(createPlaceholder(colId));
 
       // Add saved cards
       (board.columns[colId] || []).forEach(item => {
-        cardsContainer.appendChild(createFilledCard(item));
+        cardsContainer.appendChild(createFilledCard(item, colId));
       });
     });
     setupDragDrop();
@@ -730,17 +997,26 @@
       col.querySelectorAll('.cards .card:not(.placeholder)').forEach(card => {
         const text = card.querySelector('span').textContent;
         const author = card.dataset.author || 'unknown';
-        cards.push({ text, author });
+        const cardId = card.dataset.cardId || generateClientId();
+        const item = { text, author, cardId, votes: cardVotesMap[cardId] || {} };
+        if (colId === 'action-items') {
+          item.responsible = card.dataset.responsible || '';
+          item.dueDate = card.dataset.dueDate || '';
+        }
+        cards.push(item);
       });
       columns[colId] = cards;
     });
     await apiPut('/api/boards/' + currentBoardId, { columns });
+    // Update snapshot so polling doesn't re-render our own save
+    lastBoardJSON = JSON.stringify(columns);
   }
 
   // --- Card Creation ---
-  function createPlaceholder() {
+  function createPlaceholder(colId) {
     const card = document.createElement('div');
     card.className = 'card placeholder';
+    card.dataset.colId = colId || '';
     const ta = document.createElement('textarea');
     ta.rows = 1;
     ta.placeholder = 'Add a note\u2026';
@@ -751,8 +1027,43 @@
         commitPlaceholder(card, true);
       }
     });
-    ta.addEventListener('blur', () => commitPlaceholder(card, false));
+    ta.addEventListener('blur', e => {
+      // Don't commit if focus moved to another input within the same placeholder
+      if (colId === 'action-items' && card.contains(e.relatedTarget)) return;
+      commitPlaceholder(card, false);
+    });
     card.appendChild(ta);
+
+    if (colId === 'action-items') {
+      const fields = document.createElement('div');
+      fields.className = 'action-fields';
+      const respInput = document.createElement('input');
+      respInput.type = 'text';
+      respInput.placeholder = 'Responsible';
+      respInput.className = 'action-responsible';
+      const dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.className = 'action-due-date';
+      dateInput.title = 'Due date';
+      dateInput.min = new Date().toISOString().split('T')[0];
+      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      dateInput.value = tomorrow.toISOString().split('T')[0];
+      fields.appendChild(respInput);
+      fields.appendChild(dateInput);
+      card.appendChild(fields);
+
+      // Also commit on Enter from these fields
+      [respInput, dateInput].forEach(inp => {
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Enter') { e.preventDefault(); commitPlaceholder(card, true); }
+        });
+        inp.addEventListener('blur', e => {
+          if (card.contains(e.relatedTarget)) return;
+          commitPlaceholder(card, false);
+        });
+      });
+    }
+
     return card;
   }
 
@@ -762,18 +1073,151 @@
     ta.style.height = ta.scrollHeight + 'px';
   }
 
-  function createFilledCard(item) {
+  function startEditCard(card) {
+    if (card.classList.contains('editing')) return;
+    card.classList.add('editing');
+    card.draggable = false;
+
+    const colId = card.closest('.column').dataset.col;
+    const currentText = card.querySelector('span').textContent;
+    const currentResponsible = card.dataset.responsible || '';
+    const currentDueDate = card.dataset.dueDate || '';
+    const author = card.dataset.author || 'unknown';
+    const cardId = card.dataset.cardId || generateClientId();
+    const votes = cardVotesMap[cardId] || {};
+
+    card.innerHTML = '';
+
+    const ta = document.createElement('textarea');
+    ta.value = currentText;
+    ta.rows = 1;
+    ta.style.height = 'auto';
+    ta.addEventListener('input', autoResize);
+    card.appendChild(ta);
+
+    // Action-item fields
+    let respInput, dateInput;
+    if (colId === 'action-items') {
+      const fields = document.createElement('div');
+      fields.className = 'action-fields';
+      respInput = document.createElement('input');
+      respInput.type = 'text';
+      respInput.placeholder = 'Responsible';
+      respInput.className = 'action-responsible';
+      respInput.value = currentResponsible;
+      dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.className = 'action-due-date';
+      dateInput.title = 'Due date';
+      dateInput.min = new Date().toISOString().split('T')[0];
+      dateInput.value = currentDueDate;
+      fields.appendChild(respInput);
+      fields.appendChild(dateInput);
+      card.appendChild(fields);
+    }
+
+    function finishEdit() {
+      if (card._editFinished) return;
+      const newText = ta.value.trim();
+      if (!newText) { card._editFinished = true; card.remove(); saveBoardState(); return; }
+
+      if (colId === 'action-items' && dateInput && dateInput.value && !isDateValid(dateInput.value)) {
+        showToast('Error: Invalid or past date.');
+        dateInput.value = currentDueDate || '';
+        return;
+      }
+
+      card._editFinished = true;
+      const item = { text: newText, author, cardId, votes };
+      if (colId === 'action-items') {
+        item.responsible = respInput ? respInput.value.trim() : '';
+        item.dueDate = dateInput ? dateInput.value : '';
+      }
+
+      const newCard = createFilledCard(item, colId);
+      card.replaceWith(newCard);
+      saveBoardState();
+    }
+
+    ta.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finishEdit(); }
+      if (e.key === 'Escape') finishEdit();
+    });
+
+    const blurHandler = e => {
+      if (card.contains(e.relatedTarget)) return;
+      finishEdit();
+    };
+    ta.addEventListener('blur', blurHandler);
+    if (respInput) { respInput.addEventListener('blur', blurHandler); respInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finishEdit(); } }); }
+    if (dateInput) { dateInput.addEventListener('blur', blurHandler); dateInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finishEdit(); } }); }
+
+    // Focus and place cursor at end
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = ta.value.length;
+    ta.style.height = ta.scrollHeight + 'px';
+  }
+
+  function createFilledCard(item, colId) {
     const text = typeof item === 'string' ? item : item.text;
     const author = typeof item === 'string' ? 'unknown' : (item.author || 'unknown');
+    const cardId = (typeof item === 'object' && item.cardId) ? item.cardId : generateClientId();
+    const votes = (typeof item === 'object' && item.votes) ? item.votes : {};
+
+    // Store votes in map
+    cardVotesMap[cardId] = votes;
 
     const card = document.createElement('div');
     card.className = 'card';
     card.draggable = true;
     card.dataset.author = author;
+    card.dataset.cardId = cardId;
+
+    if (item.responsible) card.dataset.responsible = item.responsible;
+    if (item.dueDate) card.dataset.dueDate = item.dueDate;
 
     const span = document.createElement('span');
     span.textContent = text;
     card.appendChild(span);
+
+    // Show responsible / due date for action-items
+    if (colId === 'action-items' && (item.responsible || item.dueDate)) {
+      const meta = document.createElement('div');
+      meta.className = 'card-meta';
+      if (item.responsible) {
+        const rs = document.createElement('span');
+        rs.textContent = 'Owner: ' + item.responsible;
+        meta.appendChild(rs);
+      }
+      if (item.dueDate) {
+        const ds = document.createElement('span');
+        ds.textContent = 'Due: ' + item.dueDate;
+        meta.appendChild(ds);
+      }
+      card.appendChild(meta);
+    }
+
+    // Vote bar for went-well and to-improve only
+    if (colId === 'went-well' || colId === 'to-improve') {
+      const email = getCookie('retroUser') || '';
+      const iVoted = !!votes[email];
+      const voteBar = document.createElement('div');
+      voteBar.className = 'vote-bar';
+
+      const upBtn = document.createElement('button');
+      upBtn.className = 'vote-btn vote-up' + (iVoted ? ' voted' : '') + (!iVoted && myTotalVotes >= 5 ? ' disabled' : '');
+      upBtn.innerHTML = iVoted ? THUMBS_UP_SOLID_SVG : THUMBS_UP_OUTLINE_SVG;
+      upBtn.title = 'Vote';
+      upBtn.addEventListener('click', e => { e.stopPropagation(); castVote(cardId); });
+
+      const countSpan = document.createElement('span');
+      countSpan.className = 'vote-count';
+      countSpan.textContent = getVoteTotal(votes);
+
+      voteBar.appendChild(upBtn);
+      voteBar.appendChild(countSpan);
+      card.appendChild(voteBar);
+    }
 
     const authorDiv = document.createElement('div');
     authorDiv.className = 'card-author';
@@ -792,6 +1236,11 @@
     });
     card.appendChild(btn);
 
+    span.style.cursor = 'pointer';
+    span.addEventListener('click', e => {
+      e.stopPropagation();
+      startEditCard(card);
+    });
     card.addEventListener('dragstart', onDragStart);
     card.addEventListener('dragend', onDragEnd);
     return card;
@@ -802,43 +1251,39 @@
     const ta = card.querySelector('textarea');
     const text = ta.value.trim();
     if (!text) return;
-    card._committed = true;
 
+    const colId = card.dataset.colId || '';
     const authorEmail = getCookie('retroUser') || 'unknown';
 
-    // Convert to filled card
-    card.classList.remove('placeholder');
-    card.innerHTML = '';
-    card.draggable = true;
-    card.dataset.author = authorEmail;
+    // Read action-item fields before clearing
+    let responsible = '';
+    let dueDate = '';
+    if (colId === 'action-items') {
+      const respInput = card.querySelector('.action-responsible');
+      const dateInput = card.querySelector('.action-due-date');
+      if (respInput) responsible = respInput.value.trim();
+      if (dateInput) dueDate = dateInput.value;
+      if (dueDate && !isDateValid(dueDate)) {
+        showToast('Error: Invalid or past date.');
+        const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+        dateInput.value = tomorrow.toISOString().split('T')[0];
+        return;
+      }
+    }
 
-    const span = document.createElement('span');
-    span.textContent = text;
-    card.appendChild(span);
+    card._committed = true;
 
-    const authorDiv = document.createElement('div');
-    authorDiv.className = 'card-author';
-    authorDiv.textContent = getAuthorName(authorEmail);
-    card.appendChild(authorDiv);
+    // Convert placeholder to a filled card using createFilledCard
+    const container = card.parentElement;
+    const item = { text, author: authorEmail, cardId: generateClientId(), votes: {} };
+    if (responsible) item.responsible = responsible;
+    if (dueDate) item.dueDate = dueDate;
 
-    const btn = document.createElement('button');
-    btn.className = 'delete-btn';
-    btn.innerHTML = TRASH_SVG;
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      showModal('Delete Card', 'Are you sure you want to delete this card?', () => {
-        card.remove();
-        saveBoardState();
-      });
-    });
-    card.appendChild(btn);
-
-    card.addEventListener('dragstart', onDragStart);
-    card.addEventListener('dragend', onDragEnd);
+    const filledCard = createFilledCard(item, colId);
+    card.replaceWith(filledCard);
 
     // Insert new placeholder at top
-    const container = card.parentElement;
-    const newPlaceholder = createPlaceholder();
+    const newPlaceholder = createPlaceholder(colId);
     container.insertBefore(newPlaceholder, container.firstChild);
     if (focusNew) newPlaceholder.querySelector('textarea').focus();
 
@@ -847,9 +1292,11 @@
 
   // --- Drag and Drop ---
   let draggedCard = null;
+  let dragSourceCol = null;
 
   function onDragStart(e) {
     draggedCard = e.target;
+    dragSourceCol = e.target.closest('.column').dataset.col;
     e.target.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
   }
@@ -857,12 +1304,31 @@
   function onDragEnd(e) {
     e.target.classList.remove('dragging');
     draggedCard = null;
+    dragSourceCol = null;
     document.querySelectorAll('.column.drag-over').forEach(c => c.classList.remove('drag-over'));
+  }
+
+  function getDropTarget(container, y) {
+    const cards = [...container.querySelectorAll('.card:not(.dragging):not(.placeholder)')];
+    for (const card of cards) {
+      const rect = card.getBoundingClientRect();
+      if (y < rect.top + rect.height / 2) return card;
+    }
+    return null;
+  }
+
+  function isActionItemCrossMove(targetColId) {
+    if (!dragSourceCol) return false;
+    if (dragSourceCol === targetColId) return false;
+    return dragSourceCol === 'action-items' || targetColId === 'action-items';
   }
 
   function setupDragDrop() {
     document.querySelectorAll('#board-columns .column').forEach(col => {
       col.addEventListener('dragover', e => {
+        const targetColId = col.dataset.col;
+        // Block cross-column moves involving action-items
+        if (isActionItemCrossMove(targetColId)) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         col.classList.add('drag-over');
@@ -873,15 +1339,75 @@
       });
 
       col.addEventListener('drop', e => {
+        const targetColId = col.dataset.col;
+        if (isActionItemCrossMove(targetColId)) return;
         e.preventDefault();
         col.classList.remove('drag-over');
         if (!draggedCard) return;
         const cards = col.querySelector('.cards');
-        const placeholder = cards.querySelector('.placeholder');
-        cards.insertBefore(draggedCard, placeholder ? placeholder.nextSibling : cards.firstChild);
+        const target = getDropTarget(cards, e.clientY);
+        if (target) {
+          cards.insertBefore(draggedCard, target);
+        } else {
+          cards.appendChild(draggedCard);
+        }
         saveBoardState();
       });
     });
+  }
+
+  // --- Polling for live updates ---
+  let pollTimer = null;
+  let lastBoardJSON = '';
+
+  function stopPolling() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  function startBoardPolling(boardId) {
+    stopPolling();
+    pollTimer = setInterval(async () => {
+      if (!currentBoardId || currentBoardId !== boardId) { stopPolling(); return; }
+      // Skip if user is editing or dragging
+      if (document.querySelector('.card.editing') || document.querySelector('.card.placeholder textarea:focus') || draggedCard) return;
+      try {
+        const data = await apiGet('/api/boards/' + boardId);
+        if (data.error || !data.board) return;
+        const newJSON = JSON.stringify(data.board.columns);
+        if (newJSON === lastBoardJSON) return;
+        lastBoardJSON = newJSON;
+        // Update state and re-render
+        const idx = boards.findIndex(b => b.id === boardId);
+        if (idx !== -1) boards[idx] = data.board; else boards.push(data.board);
+        Object.assign(authorCache, data.authors);
+        myTotalVotes = data.myTotalVotes || 0;
+        cardVotesMap = {};
+        for (const colId of Object.keys(data.board.columns)) {
+          (data.board.columns[colId] || []).forEach(item => {
+            if (item.cardId) cardVotesMap[item.cardId] = item.votes || {};
+          });
+        }
+        document.getElementById('board-title').textContent = data.board.name;
+        renderBoardCards(data.board);
+      } catch (e) { /* ignore network errors */ }
+    }, 4000);
+  }
+
+  let lastBoardsListJSON = '';
+
+  function startBoardsListPolling() {
+    stopPolling();
+    pollTimer = setInterval(async () => {
+      if (currentBoardId) { stopPolling(); return; }
+      try {
+        const data = await apiGet('/api/boards');
+        const newJSON = JSON.stringify(data.boards.map(b => ({ id: b.id, name: b.name })));
+        if (newJSON === lastBoardsListJSON) return;
+        lastBoardsListJSON = newJSON;
+        boards = data.boards;
+        renderBoardsList();
+      } catch (e) { /* ignore */ }
+    }, 4000);
   }
 
   // --- Init ---

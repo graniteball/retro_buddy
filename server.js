@@ -38,7 +38,15 @@ function migrateBoards(data) {
       board.columns[colId] = board.columns[colId].map(item => {
         if (typeof item === 'string') {
           changed = true;
-          return { text: item, author: 'unknown' };
+          item = { text: item, author: 'unknown' };
+        }
+        if (!item.cardId) {
+          item.cardId = generateId();
+          changed = true;
+        }
+        if (!item.votes) {
+          item.votes = {};
+          changed = true;
         }
         return item;
       });
@@ -142,7 +150,69 @@ app.get('/api/boards/:id', (req, res) => {
     authors[email] = user ? user.name : email;
   });
 
-  res.json({ board, authors });
+  // Compute requesting user's total votes on this board
+  const cookies = parseCookies(req);
+  const reqEmail = cookies.retroUser || '';
+  let myTotalVotes = 0;
+  for (const colId of ['went-well', 'to-improve']) {
+    (board.columns[colId] || []).forEach(card => {
+      if (card.votes && card.votes[reqEmail]) myTotalVotes++;
+    });
+  }
+
+  res.json({ board, authors, myTotalVotes });
+});
+
+// Toggle vote on a card (1 vote per user per card, 5 votes max per user per board)
+app.post('/api/boards/:id/vote', (req, res) => {
+  const { cardId } = req.body;
+  if (!cardId) return res.json({ ok: false, error: 'cardId required.' });
+
+  const cookies = parseCookies(req);
+  const email = cookies.retroUser;
+  if (!email) return res.status(401).json({ ok: false, error: 'Not signed in.' });
+
+  const data = loadData();
+  const board = data.boards.find(b => b.id === req.params.id);
+  if (!board) return res.status(404).json({ ok: false, error: 'Board not found.' });
+
+  // Find card in went-well or to-improve only
+  let card = null;
+  for (const colId of ['went-well', 'to-improve']) {
+    card = (board.columns[colId] || []).find(c => c.cardId === cardId);
+    if (card) break;
+  }
+  if (!card) return res.json({ ok: false, error: 'Card not found.' });
+
+  if (!card.votes) card.votes = {};
+
+  const hasVoted = !!card.votes[email];
+
+  if (hasVoted) {
+    // Remove vote
+    delete card.votes[email];
+  } else {
+    // Check user's total votes across the board
+    let myTotalVotes = 0;
+    for (const colId of ['went-well', 'to-improve']) {
+      (board.columns[colId] || []).forEach(c => {
+        if (c.votes && c.votes[email]) myTotalVotes++;
+      });
+    }
+    if (myTotalVotes >= 5) return res.json({ ok: false, error: 'No votes remaining.' });
+    card.votes[email] = 1;
+  }
+
+  // Recompute myTotalVotes after change
+  let myTotalVotes = 0;
+  for (const colId of ['went-well', 'to-improve']) {
+    (board.columns[colId] || []).forEach(c => {
+      if (c.votes && c.votes[email]) myTotalVotes++;
+    });
+  }
+
+  saveData(data);
+  res.json({ ok: true, votes: card.votes, myTotalVotes });
 });
 
 // Save card state
