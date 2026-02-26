@@ -130,6 +130,18 @@ app.delete('/api/boards/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// Rename board
+app.patch('/api/boards/:id', (req, res) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) return res.json({ ok: false, error: 'Name is required.' });
+  const data = loadData();
+  const board = data.boards.find(b => b.id === req.params.id);
+  if (!board) return res.status(404).json({ ok: false, error: 'Board not found.' });
+  board.name = name.trim();
+  saveData(data);
+  res.json({ ok: true, board });
+});
+
 // Get single board + authors map
 app.get('/api/boards/:id', (req, res) => {
   const data = loadData();

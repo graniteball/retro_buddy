@@ -21,6 +21,10 @@
     flex: 1;
   }
 
+  #board-title { cursor: pointer; }
+  #board-title:hover { text-decoration: underline; text-decoration-color: #cbd5e0; text-underline-offset: 3px; }
+  #board-title[contenteditable="true"] { cursor: text; text-decoration: none; outline: 2px solid #667eea; border-radius: 4px; padding: 2px 6px; }
+
   .back-btn {
     background: none;
     border: none;
@@ -77,6 +81,22 @@
     align-items: center;
   }
   .board-tile .delete-btn:hover { color: #e53e3e; background: #fee; }
+
+  .board-tile .rename-btn {
+    position: absolute;
+    top: 8px;
+    right: 36px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #a0aec0;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color .15s, background .15s;
+    display: flex;
+    align-items: center;
+  }
+  .board-tile .rename-btn:hover { color: #4299e1; background: #ebf8ff; }
 
   .create-board-btn {
     background: #fff;
@@ -732,6 +752,7 @@
   const THUMBS_UP_OUTLINE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg>';
   const THUMBS_UP_SOLID_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg>';
   const SORT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5l0 14"/><path d="M18 11l-6-6-6 6"/></svg>';
+  const PENCIL_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
 
   // --- API Helpers ---
   async function apiGet(url) {
@@ -748,6 +769,10 @@
   }
   async function apiDelete(url) {
     const res = await fetch(url, { method: 'DELETE' });
+    return res.json();
+  }
+  async function apiPatch(url, body) {
+    const res = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     return res.json();
   }
 
@@ -971,6 +996,43 @@
 
   document.getElementById('back-btn').addEventListener('click', () => showBoardsList());
 
+  document.getElementById('board-title').addEventListener('click', function () {
+    const h1 = this;
+    if (h1.contentEditable === 'true') return;
+    const originalName = h1.textContent;
+    let cancelling = false;
+
+    h1.contentEditable = 'true';
+    h1.focus();
+    const range = document.createRange();
+    range.selectNodeContents(h1);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    const onKeydown = (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); h1.blur(); }
+      if (e.key === 'Escape') { cancelling = true; h1.blur(); }
+    };
+    h1.addEventListener('keydown', onKeydown);
+    h1.addEventListener('blur', async () => {
+      h1.removeEventListener('keydown', onKeydown);
+      h1.contentEditable = 'false';
+      const newName = h1.textContent.trim();
+      if (cancelling || !newName || newName === originalName) {
+        h1.textContent = originalName;
+        return;
+      }
+      const result = await apiPatch('/api/boards/' + currentBoardId, { name: newName });
+      if (result.ok) {
+        const idx = boards.findIndex(b => b.id === currentBoardId);
+        if (idx !== -1) boards[idx].name = newName;
+      } else {
+        h1.textContent = originalName;
+      }
+    }, { once: true });
+  });
+
   window.addEventListener('hashchange', async () => {
     const hash = location.hash.slice(1);
     if (hash.startsWith('board-')) {
@@ -991,6 +1053,22 @@
       tile.className = 'board-tile';
       tile.textContent = board.name;
       tile.addEventListener('click', () => showBoard(board.id));
+
+      const rename = document.createElement('button');
+      rename.className = 'rename-btn';
+      rename.innerHTML = PENCIL_SVG;
+      rename.title = 'Rename board';
+      rename.addEventListener('click', async e => {
+        e.stopPropagation();
+        const newName = prompt('Board name:', board.name);
+        if (!newName || !newName.trim() || newName.trim() === board.name) return;
+        const result = await apiPatch('/api/boards/' + board.id, { name: newName.trim() });
+        if (result.ok) {
+          board.name = newName.trim();
+          renderBoardsList();
+        }
+      });
+      tile.appendChild(rename);
 
       const del = document.createElement('button');
       del.className = 'delete-btn';
