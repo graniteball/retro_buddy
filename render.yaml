@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: retro-buddy
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    disk:
+      name: retro-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: DATA_FILE
+        value: /var/data/data.json
