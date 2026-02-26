@@ -1116,7 +1116,7 @@
     createBtn.addEventListener('click', async () => {
       const name = prompt('Board name:');
       if (!name || !name.trim()) return;
-      const result = await apiPost('/api/boards', { name: name.trim() });
+      const result = await apiPost('/api/boards', { name: name.trim().slice(0, 32) });
       boards.push(result.board);
       await showBoard(result.board.id);
     });
