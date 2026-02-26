@@ -114,6 +114,8 @@
   }
   .board-tile .rename-btn:hover { color: #4299e1; background: #ebf8ff; }
 
+  .board-tile.dragging { opacity: .4; }
+
   .create-board-btn {
     background: #fff;
     border: 2px dashed #cbd5e0;
@@ -1067,6 +1069,23 @@
   });
 
   // --- Boards List Rendering ---
+  let draggedBoardEl = null;
+
+  function getBoardDropTarget(grid, x, y) {
+    const tiles = [...grid.querySelectorAll('.board-tile:not(.dragging)')];
+    let best = null;
+    let bestScore = Infinity;
+    for (const tile of tiles) {
+      const box = tile.getBoundingClientRect();
+      const cx = box.left + box.width / 2;
+      const cy = box.top + box.height / 2;
+      const score = Math.abs(cy - y) * 3 + Math.abs(cx - x);
+      if (score < bestScore) { bestScore = score; best = { tile, before: x < cx || y < box.top }; }
+    }
+    if (!best) return null;
+    return best.before ? best.tile : best.tile.nextSibling;
+  }
+
   function renderBoardsList() {
     const grid = document.getElementById('boards-grid');
     grid.innerHTML = '';
@@ -1074,8 +1093,19 @@
     boards.forEach(board => {
       const tile = document.createElement('div');
       tile.className = 'board-tile';
+      tile.dataset.boardId = board.id;
+      tile.draggable = true;
       tile.textContent = board.name;
-      tile.addEventListener('click', () => showBoard(board.id));
+      tile.addEventListener('click', () => { if (!draggedBoardEl) showBoard(board.id); });
+      tile.addEventListener('dragstart', e => {
+        draggedBoardEl = tile;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => tile.classList.add('dragging'), 0);
+      });
+      tile.addEventListener('dragend', () => {
+        tile.classList.remove('dragging');
+        draggedBoardEl = null;
+      });
 
       const rename = document.createElement('button');
       rename.className = 'rename-btn';
@@ -1117,10 +1147,25 @@
       const name = prompt('Board name:');
       if (!name || !name.trim()) return;
       const result = await apiPost('/api/boards', { name: name.trim().slice(0, 32) });
-      boards.push(result.board);
+      boards.unshift(result.board);
       await showBoard(result.board.id);
     });
     grid.appendChild(createBtn);
+
+    grid.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (!draggedBoardEl) return;
+      const target = getBoardDropTarget(grid, e.clientX, e.clientY);
+      if (target && target !== createBtn) grid.insertBefore(draggedBoardEl, target);
+      else grid.insertBefore(draggedBoardEl, createBtn);
+    });
+    grid.addEventListener('drop', async e => {
+      e.preventDefault();
+      if (!draggedBoardEl) return;
+      const ids = [...grid.querySelectorAll('.board-tile')].map(t => t.dataset.boardId);
+      boards = ids.map(id => boards.find(b => b.id === id)).filter(Boolean);
+      await apiPut('/api/boards/order', { ids });
+    });
   }
 
   // --- Board Detail Rendering ---
@@ -1624,6 +1669,7 @@
     pollTimer = setInterval(async () => {
       if (currentBoardId) { stopPolling(); return; }
       try {
+        if (draggedBoardEl) return;
         const data = await apiGet('/api/boards');
         const newJSON = JSON.stringify(data.boards.map(b => ({ id: b.id, name: b.name })));
         if (newJSON === lastBoardsListJSON) return;

@@ -117,9 +117,21 @@ app.post('/api/boards', (req, res) => {
     name,
     columns: { 'went-well': [], 'to-improve': [], 'action-items': [] }
   };
-  data.boards.push(board);
+  data.boards.unshift(board);
   saveData(data);
   res.json({ board });
+});
+
+// Reorder boards
+app.put('/api/boards/order', (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids)) return res.json({ ok: false, error: 'ids required.' });
+  const data = loadData();
+  const boardMap = {};
+  data.boards.forEach(b => { boardMap[b.id] = b; });
+  data.boards = ids.map(id => boardMap[id]).filter(Boolean);
+  saveData(data);
+  res.json({ ok: true });
 });
 
 // Delete board
