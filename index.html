@@ -23,7 +23,23 @@
 
   #board-title { cursor: pointer; }
   #board-title:hover { text-decoration: underline; text-decoration-color: #cbd5e0; text-underline-offset: 3px; }
-  #board-title[contenteditable="true"] { cursor: text; text-decoration: none; outline: 2px solid #667eea; border-radius: 4px; padding: 2px 6px; flex: 0 0 auto; max-width: calc(50% - 80px); white-space: normal; word-break: break-word; }
+  #board-title.editing { cursor: default; text-decoration: none; }
+  #board-title .title-input {
+    font-family: inherit;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2d3748;
+    background: transparent;
+    border: none;
+    outline: 2px solid #667eea;
+    border-radius: 4px;
+    padding: 2px 6px;
+    width: calc(50% - 80px);
+    resize: none;
+    overflow: hidden;
+    line-height: 1.4;
+    display: block;
+  }
 
   .back-btn {
     background: none;
@@ -998,50 +1014,44 @@
 
   document.getElementById('board-title').addEventListener('click', function () {
     const h1 = this;
-    if (h1.contentEditable === 'true') return;
+    if (h1.classList.contains('editing')) return;
     const originalName = h1.textContent;
-    let cancelling = false;
+    let cancelled = false;
 
-    h1.contentEditable = 'true';
-    h1.focus();
-    const range = document.createRange();
-    range.selectNodeContents(h1);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
+    const ta = document.createElement('textarea');
+    ta.className = 'title-input';
+    ta.value = originalName;
+    ta.maxLength = 32;
+    ta.rows = 1;
 
-    const onInput = () => {
-      if (h1.textContent.length > 32) {
-        h1.textContent = h1.textContent.slice(0, 32);
-        const r = document.createRange();
-        r.selectNodeContents(h1);
-        r.collapse(false);
-        const s = window.getSelection();
-        s.removeAllRanges();
-        s.addRange(r);
-      }
-    };
-    const onKeydown = (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); h1.blur(); }
-      if (e.key === 'Escape') { cancelling = true; h1.blur(); }
-    };
-    h1.addEventListener('input', onInput);
-    h1.addEventListener('keydown', onKeydown);
-    h1.addEventListener('blur', async () => {
-      h1.removeEventListener('input', onInput);
-      h1.removeEventListener('keydown', onKeydown);
-      h1.contentEditable = 'false';
-      const newName = h1.textContent.trim();
-      if (cancelling || !newName || newName === originalName) {
-        h1.textContent = originalName;
-        return;
-      }
+    const resize = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+
+    h1.textContent = '';
+    h1.classList.add('editing');
+    h1.appendChild(ta);
+    ta.focus();
+    ta.select();
+    resize();
+
+    ta.addEventListener('input', resize);
+
+    ta.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); ta.blur(); }
+      if (e.key === 'Escape') { cancelled = true; ta.blur(); }
+    });
+
+    ta.addEventListener('blur', async () => {
+      h1.classList.remove('editing');
+      if (cancelled) { h1.textContent = originalName; return; }
+      const newName = ta.value.replace(/[\r\n]+/g, ' ').trim();
+      if (!newName || newName === originalName) { h1.textContent = originalName; return; }
+      h1.textContent = newName;
       const result = await apiPatch('/api/boards/' + currentBoardId, { name: newName });
-      if (result.ok) {
+      if (!result.ok) {
+        h1.textContent = originalName;
+      } else {
         const idx = boards.findIndex(b => b.id === currentBoardId);
         if (idx !== -1) boards[idx].name = newName;
-      } else {
-        h1.textContent = originalName;
       }
     }, { once: true });
   });
