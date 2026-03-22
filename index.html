@@ -1515,7 +1515,7 @@
     return card;
   }
 
-  function commitPlaceholder(card, focusNew) {
+  async function commitPlaceholder(card, focusNew) {
     if (card._committed) return;
     const ta = card.querySelector('textarea');
     const text = ta.value.trim();
@@ -1556,7 +1556,15 @@
     container.insertBefore(newPlaceholder, container.firstChild);
     if (focusNew) newPlaceholder.querySelector('textarea').focus();
 
-    saveBoardState();
+    // Use atomic add-card endpoint to prevent concurrent-save overwrites
+    if (currentBoardId) {
+      await apiPost('/api/boards/' + currentBoardId + '/cards', { colId, card: item });
+      // Update snapshot so polling doesn't re-render our own addition
+      try {
+        const fresh = await apiGet('/api/boards/' + currentBoardId);
+        if (fresh.board) lastBoardJSON = JSON.stringify(fresh.board.columns);
+      } catch (e) { /* ignore */ }
+    }
   }
 
   // --- Drag and Drop ---

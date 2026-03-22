@@ -239,6 +239,37 @@ app.post('/api/boards/:id/vote', (req, res) => {
   res.json({ ok: true, votes: card.votes, myTotalVotes });
 });
 
+// Add a single card to a column — atomic, prevents concurrent-save overwrites
+app.post('/api/boards/:id/cards', (req, res) => {
+  const { colId, card } = req.body;
+  if (!colId || !card || !card.text) return res.json({ ok: false, error: 'colId and card required.' });
+
+  const cookies = parseCookies(req);
+  const email = cookies.retroUser;
+  if (!email) return res.status(401).json({ ok: false, error: 'Not signed in.' });
+
+  const data = loadData();
+  const board = data.boards.find(b => b.id === req.params.id);
+  if (!board) return res.status(404).json({ ok: false, error: 'Board not found.' });
+
+  if (!board.columns[colId]) return res.json({ ok: false, error: 'Invalid column.' });
+
+  const newCard = {
+    text: card.text.trim(),
+    author: email,
+    cardId: card.cardId || generateId(),
+    votes: {}
+  };
+  if (colId === 'action-items') {
+    newCard.responsible = card.responsible || '';
+    newCard.dueDate = card.dueDate || '';
+  }
+
+  board.columns[colId].push(newCard);
+  saveData(data);
+  res.json({ ok: true, card: newCard });
+});
+
 // Save card state
 app.put('/api/boards/:id', (req, res) => {
   const { columns } = req.body;
@@ -252,7 +283,11 @@ app.put('/api/boards/:id', (req, res) => {
 });
 
 // --- Start ---
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Retro server running on port ${PORT}`);
-});
+module.exports = app;
+
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Retro server running on port ${PORT}`);
+  });
+}
