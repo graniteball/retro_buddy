@@ -1296,11 +1296,6 @@
         commitPlaceholder(card, true);
       }
     });
-    ta.addEventListener('blur', e => {
-      // Don't commit if focus moved to another input within the same placeholder
-      if (colId === 'action-items' && card.contains(e.relatedTarget)) return;
-      commitPlaceholder(card, false);
-    });
     card.appendChild(ta);
 
     if (colId === 'action-items') {
@@ -1325,10 +1320,6 @@
       [respInput, dateInput].forEach(inp => {
         inp.addEventListener('keydown', e => {
           if (e.key === 'Enter') { e.preventDefault(); commitPlaceholder(card, true); }
-        });
-        inp.addEventListener('blur', e => {
-          if (card.contains(e.relatedTarget)) return;
-          commitPlaceholder(card, false);
         });
       });
     }
@@ -1413,13 +1404,8 @@
       if (e.key === 'Escape') finishEdit();
     });
 
-    const blurHandler = e => {
-      if (card.contains(e.relatedTarget)) return;
-      finishEdit();
-    };
-    ta.addEventListener('blur', blurHandler);
-    if (respInput) { respInput.addEventListener('blur', blurHandler); respInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finishEdit(); } }); }
-    if (dateInput) { dateInput.addEventListener('blur', blurHandler); dateInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finishEdit(); } }); }
+    if (respInput) { respInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finishEdit(); } }); }
+    if (dateInput) { dateInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finishEdit(); } }); }
 
     // Focus and place cursor at end
     ta.focus();
