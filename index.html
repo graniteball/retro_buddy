@@ -1631,8 +1631,9 @@
     stopPolling();
     pollTimer = setInterval(async () => {
       if (!currentBoardId || currentBoardId !== boardId) { stopPolling(); return; }
-      // Skip if user is editing or dragging
-      if (document.querySelector('.card.editing') || document.querySelector('.card.placeholder textarea:focus') || draggedCard) return;
+      // Skip if user is editing, has text in a placeholder, or is dragging
+      const hasTextInProgress = [...document.querySelectorAll('.card.placeholder textarea')].some(ta => ta.value.trim());
+      if (document.querySelector('.card.editing') || hasTextInProgress || draggedCard) return;
       try {
         const data = await apiGet('/api/boards/' + boardId);
         if (data.error || !data.board) return;
